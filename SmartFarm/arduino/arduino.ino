@@ -15,7 +15,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 DHT dht(DHTPIN, DHTTYPE);
 
 // Khai báo chân Máy bơm
-int pumpPin = 12; 
+int pumpPin = 8; 
 // Khai báo chân LED đơn
 int ledPin = 13;  // Chân D13 để điều khiển LED đơn
 

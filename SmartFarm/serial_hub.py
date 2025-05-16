@@ -139,26 +139,62 @@ def auto_controller():
             if auto_modes["light"]:
                 if light < thresholds["light"]["floor"]:
                     if not status["light"]:
-                      ser.write(b"light_on\n")
-                      status["light"] = True
-                      print("[AUTO] Bật đèn do ánh sáng thấp")
+                        ser.write(b"light_on\n")
+                        status["light"] = True
+                      
+                        sql = """
+                        UPDATE device_status 
+                        SET Status = 'on' 
+                        WHERE Name = 'light'
+                        """
+                        cursor.execute(sql)
+                        db.commit()
+
+                        print("[AUTO] Bật đèn do ánh sáng thấp")
                 elif light > thresholds["light"]["ceil"]:
                     if status["light"]:
-                      status["light"] = False
-                      ser.write(b"light_off\n")
-                      print("[AUTO] Tắt đèn do ánh sáng cao")
+                        status["light"] = False
+                        ser.write(b"light_off\n")
+
+                        sql = """
+                        UPDATE device_status 
+                        SET Status = 'off' 
+                        WHERE Name = 'light'
+                        """
+                        cursor.execute(sql)
+                        db.commit()
+
+                        print("[AUTO] Tắt đèn do ánh sáng cao")
 
             if auto_modes["water"]:
-                if humi < thresholds["water"]["floor"] or temp < thresholds["temp"]["floor"]:
+                if humi < thresholds["water"]["floor"] or temp > thresholds["temp"]["ceil"]:
                     if not status["water"]:
-                      status["water"] = True
-                      ser.write(b"water_on\n")
-                      print("[AUTO] Bật tưới do độ ẩm thấp")
-                elif humi > thresholds["water"]["ceil"] or temp > thresholds["temp"]["ceil"]:
+                        status["water"] = True
+                        ser.write(b"water_on\n")
+
+                        sql = """
+                        UPDATE device_status 
+                        SET Status = 'on' 
+                        WHERE Name = 'water'
+                        """
+                        cursor.execute(sql)
+                        db.commit()
+
+                        print("[AUTO] Bật tưới do độ ẩm thấp")
+                elif humi > thresholds["water"]["ceil"] or temp < thresholds["temp"]["floor"]:
                     if status["water"]:
-                      status["water"] = False
-                      ser.write(b"water_off\n")
-                      print("[AUTO] Tắt tưới do độ ẩm cao")
+                        status["water"] = False
+                        ser.write(b"water_off\n")
+
+                        sql = """
+                        UPDATE device_status 
+                        SET Status = 'off' 
+                        WHERE Name = 'water'
+                        """
+                        cursor.execute(sql)
+                        db.commit()
+
+                        print("[AUTO] Tắt tưới do độ ẩm cao")
         time.sleep(10)
 
 
