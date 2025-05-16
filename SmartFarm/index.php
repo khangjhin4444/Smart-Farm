@@ -167,10 +167,10 @@
                     lightChart.update();
 
                     // Auto mode checks
-                    if (document.getElementById('autoWater').checked && data.humidity < 30) {
+                    if (document.getElementById('autoWater').checked) {
                         controlDevice('water');
                     }
-                    if (document.getElementById('autoLight').checked && data.light < 200) {
+                    if (document.getElementById('autoLight').checked) {
                         controlDevice('light');
                     }
                 });
@@ -178,27 +178,52 @@
 
         // Control devices
         function controlDevice(device) {
+            let re_state = '';
             let btn = document.getElementById(`${device}Btn`)
-            let state = btn.classList.contains('on') ? 1 : 0;
-            if (btn.classList.contains('on')) {
-                btn.classList.remove('on');
-                btn.classList.add('off');
-                btn.textContent = `Tắt`;
+            let xml = new XMLHttpRequest();
+            xml.open("GET", `get_device_state.php?device=${device}`, true);
+            xml.onload = function() {
+                if (xml.status == 200) {
+                    let response = JSON.parse(xml.responseText);
+                    console.log(response);
+                    re_state = response.status;
+                    console.log("re_state: ", re_state);
+                    // if (re_state == 'on') {
+                    //     btn.classList.remove('off');
+                    //     btn.classList.add('on');
+                    //     btn.textContent = `Tắt`;
+                    // } else {
+                    //     btn.classList.remove('on');
+                    //     btn.classList.add('off');
+                    //     btn.textContent = `Bật`;
+                        
+                    // }
+                    let state = re_state == 'on' ? 'off' : 'on';
+                    // let state = btn.classList.contains('on') ? 'off' : 'on';
+                    console.log("state: ", state);
+                    if (btn.classList.contains('on')) {
+                        btn.classList.remove('on');
+                        btn.classList.add('off');
+                        btn.textContent = `Tắt`;
 
-            } else {
-                btn.classList.remove('off');
-                btn.classList.add('on');
-                btn.textContent = `Bật`;
-            }
-            fetch('control_device.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({device: device, state: state})
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            });
+                    } else {
+                        btn.classList.remove('off');
+                        btn.classList.add('on');
+                        btn.textContent = `Bật`;
+                    }
+                    fetch('control_device.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({device: device, state: state})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // alert(data.message);
+                    });
+                }
+            };
+            xml.send();
+            
         }
 
         // Toggle auto mode
@@ -213,7 +238,7 @@
 
         // Initial fetch and set interval
         fetchSensorData();
-        setInterval(fetchSensorData, 10000);
+        setInterval(fetchSensorData, 5000);
     </script>
 </body>
 </html>
