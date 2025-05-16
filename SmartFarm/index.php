@@ -49,6 +49,13 @@
                     <p>Độ ẩm: <span id="humidity">...</span> %</p>
                     <p>Ánh sáng: <span id="light">...</span> lux</p>
                 </div>
+
+                <div class="mt-6 ">
+                    <img class="img-fluid liveImage" src="" alt="" srcset="">
+                    <div id="alertBox" style="color: red; font-weight: bold; display: none;">
+                    ⚠️ CẢNH BÁO: Phát hiện bệnh!
+                    </div>
+                </div>
             </div>
             <div class="col-8">
                 <h2 class="mb-6">Smart Farm Dashboard</h2>
@@ -239,6 +246,28 @@
         // Initial fetch and set interval
         fetchSensorData();
         setInterval(fetchSensorData, 5000);
+
+        function updateImage() {
+            fetch('get_current_image.php')
+                .then(res => res.json())
+                .then(data => {
+                if (data.filename) {
+                    const img = document.querySelector('.liveImage');
+                    const alertBox = document.getElementById('alertBox');
+                    
+                    img.src = data.filename + '?time=' + new Date().getTime(); // tránh cache
+
+                    if (data.status === 'disease') {
+                    alertBox.style.display = 'block';
+                    } else {
+                    alertBox.style.display = 'none';
+                    }
+                }
+                });
+        }
+
+        setInterval(updateImage, 3000); // cập nhật mỗi 3 giây
+        updateImage();
     </script>
 </body>
 </html>
