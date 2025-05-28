@@ -1,16 +1,24 @@
 <?php
 $dir = 'images/';
-$normal = $dir . 'normal.jpg';
-$disease = $dir . 'disease.jpg';
+$normal = array_merge(
+    glob($dir . '*normal*.jpg'),
+    glob($dir . '*normal*.jpeg')
+);
 
-if (file_exists($disease)) {
+$disease = array_merge(
+    glob($dir . '*disease*.jpg'),
+    glob($dir . '*disease*.jpeg')
+);
+
+// Ưu tiên hiển thị ảnh bệnh nếu có
+if (!empty($disease)) {
     echo json_encode([
-        'filename' => $disease,
+        'filename' => $disease[0],  // hoặc $disease để trả nhiều file
         'status' => 'disease'
     ]);
-} else if (file_exists($normal)) {
+} else if (!empty($normal)) {
     echo json_encode([
-        'filename' => $normal,
+        'filename' => $normal[0],
         'status' => 'normal'
     ]);
 } else {
