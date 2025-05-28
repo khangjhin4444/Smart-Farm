@@ -116,10 +116,10 @@ auto_modes = {
     "water": False
 }
 
-status = {
-    "light": False,
-    "water": False
-}
+# status = {
+#     "light": False,
+#     "water": False
+# }
 
 # Ngưỡng điều khiển
 thresholds = {
@@ -138,9 +138,9 @@ def auto_controller():
 
             if auto_modes["light"]:
                 if light < thresholds["light"]["floor"]:
-                    if not status["light"]:
+                    # if not status["light"]:
                         ser.write(b"light_on\n")
-                        status["light"] = True
+                        # status["light"] = True
                       
                         sql = """
                         UPDATE device_status 
@@ -152,8 +152,8 @@ def auto_controller():
 
                         print("[AUTO] Bật đèn do ánh sáng thấp")
                 elif light > thresholds["light"]["ceil"]:
-                    if status["light"]:
-                        status["light"] = False
+                    # if status["light"]:
+                    #     status["light"] = False
                         ser.write(b"light_off\n")
 
                         sql = """
@@ -168,8 +168,8 @@ def auto_controller():
 
             if auto_modes["water"]:
                 if humi < thresholds["water"]["floor"] or temp > thresholds["temp"]["ceil"]:
-                    if not status["water"]:
-                        status["water"] = True
+                    # if not status["water"]:
+                    #     status["water"] = True
                         ser.write(b"water_on\n")
 
                         sql = """
@@ -182,8 +182,8 @@ def auto_controller():
 
                         print("[AUTO] Bật tưới do độ ẩm thấp")
                 elif humi > thresholds["water"]["ceil"] or temp < thresholds["temp"]["floor"]:
-                    if status["water"]:
-                        status["water"] = False
+                    # if status["water"]:
+                    #     status["water"] = False
                         ser.write(b"water_off\n")
 
                         sql = """

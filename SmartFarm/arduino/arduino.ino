@@ -1,13 +1,9 @@
-#include <Wire.h>
 #include <BH1750.h>
-#include <LiquidCrystal_I2C.h>
 #include <DHT.h>
 
 // Khởi tạo cảm biến ánh sáng BH1750
 BH1750 lightMeter;
 
-// Khởi tạo LCD 16x2, địa chỉ 0x27, kích thước 16x2
-LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // Khởi tạo cảm biến DHT11
 #define DHTPIN 2     // Chân kết nối DHT11 với Arduino (D2)
@@ -23,13 +19,9 @@ int ledPin = 13;  // Chân D13 để điều khiển LED đơn
 bool showTempHum = true;  // true: hiển thị nhiệt độ/độ ẩm, false: hiển thị ánh sáng
 
 void setup() {
-  Wire.begin(); // Khởi động I2C (SDA = A4, SCL = A5)
 
   Serial.begin(9600);
   Serial.println("Khởi động...");
-
-  lcd.init();        // Khởi động LCD
-  lcd.backlight();   // Bật đèn nền
 
   pinMode(pumpPin, OUTPUT); // Thiết lập chân Máy bơm làm OUTPUT
   pinMode(ledPin, OUTPUT);  // Thiết lập chân LED làm OUTPUT
@@ -74,24 +66,6 @@ void loop() {
       Serial.print("Anh sang: ");
       Serial.print(lux);
       Serial.println(" lux");
-    }
-
-    // Cập nhật LCD
-    lcd.clear();
-    if (showTempHum) {
-      lcd.setCursor(0, 0);
-      lcd.print("Temp: ");
-      lcd.print(temperature);
-      lcd.print(" C");
-      lcd.setCursor(0, 1);
-      lcd.print("Hum: ");
-      lcd.print(humidity);
-      lcd.print(" %");
-    } else {
-      lcd.setCursor(0, 0);
-      lcd.print("Anh sang: ");
-      lcd.print(lux);
-      lcd.print(" lux");
     }
 
     // Đổi trạng thái hiển thị

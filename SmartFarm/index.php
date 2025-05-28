@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Farm Dashboard</title>
     <!-- <script src="https://cdn.tailwindcss.com"></script> -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Roboto, sans-serif; }
+        body { font-family: 'Arial', sans-serif; }
         .container { display: flex; height: 100vh; }
         .left-panel { width: 30%; padding: 20px; background-color: #f3f4f6; }
         .right-panel { width: 70%; padding: 20px; }
@@ -23,25 +20,25 @@
     <div class="container-fluid p-4">
         <div class="row">
             <div class="col-4 bg-light">
-                <h1 class=" mb-3">Smart Farm Controls</h1>
+                <h2 class=" mb-6">Smart Farm Controls</h2>
                 
                 <!-- Watering Control -->
                 <div class="mb-4">
                     <h3 class="text-lg font-semibold">Water Pump</h3>
-                    <button id="waterBtn" onclick="controlDevice('water')" class="btn btn-primary px-4 py-2 rounded on" style="width: 130px;">On</button>
+                    <button id="waterBtn" disable onclick="controlDevice('water')" class="btn btn-primary px-4 py-2 rounded on" style="width: 130px;">On</button>
                     <label class="flex items-center mt-2">
                         <input type="checkbox" id="autoWater" onchange="toggleAuto('water')" class="mr-2">
-                        Auto Mode (Moisture < 50% or Temperature > 32°C)
+                        Auto Mode (Humidity < 50%)
                     </label>
                 </div>
                 
                 <!-- Lighting Control -->
                 <div class="mb-4">
-                    <h3 class="text-lg font-semibold">Light Device</h3>
-                    <button id="lightBtn" onclick="controlDevice('light')" class="btn btn-warning px-4 py-2 rounded on" style="width: 130px;">On</button>
+                    <h3 class="text-lg font-semibold">Light</h3>
+                    <button id="lightBtn" disable onclick="controlDevice('light')" class="btn btn-warning px-4 py-2 rounded on" style="width: 130px;">On</button>
                     <label class="flex items-center mt-2">
                         <input type="checkbox" id="autoLight" onchange="toggleAuto('light')" class="mr-2">
-                        Auto Mode (Light < 230 lux)
+                        Light (Light < 200 lux)
                     </label>
                 </div>
                 
@@ -49,7 +46,7 @@
                 <div id="sensorData" class="mt-6">
                     <h3 class="text-lg font-semibold">Current Data</h3>
                     <p>Temperature: <span id="temp">...</span> °C</p>
-                    <p>Moisture: <span id="humidity">...</span> %</p>
+                    <p>Humidity: <span id="humidity">...</span> %</p>
                     <p>Light: <span id="light">...</span> lux</p>
                 </div>
 
@@ -86,6 +83,60 @@
     </div>
 
     <script>
+        let waterCheck = document.getElementById('autoWater');
+        let lightCheck = document.getElementById('autoLight');
+        waterCheck.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('waterBtn').disabled = true;
+            }
+            else {
+                document.getElementById('waterBtn').disabled = false;
+                let water_btn = document.getElementById(`waterBtn`)
+                let xml_2 = new XMLHttpRequest();
+                xml_2.open("GET", `get_device_state.php?device=water`, true);
+                xml_2.onload = function() {
+                    if (xml_2.status == 200) {
+                        let response_2 = JSON.parse(xml_2.responseText);
+                        if (response_2.status == 'on') {
+                            water_btn.classList.remove('off');
+                            water_btn.classList.add('on');
+                            water_btn.textContent = `Off`;
+                        } else {
+                            water_btn.classList.remove('on');
+                            water_btn.classList.add('off');
+                            water_btn.textContent = `On`;
+                        }
+                    }
+                };
+                xml_2.send();
+            }    
+        });
+        lightCheck.addEventListener('change', function() {
+            if (this.checked) {
+                document.getElementById('lightBtn').disabled = true;
+            }
+            else {
+                document.getElementById('lightBtn').disabled = false;
+                let light_btn = document.getElementById(`lightBtn`)
+                let xml = new XMLHttpRequest();
+                xml.open("GET", `get_device_state.php?device=light`, true);
+                xml.onload = function() {
+                    if (xml.status == 200) {
+                        let response = JSON.parse(xml.responseText);
+                        if (response.status == 'on') {
+                            light_btn.classList.remove('off');
+                            light_btn.classList.add('on');
+                            light_btn.textContent = `Off`;
+                        } else {
+                            light_btn.classList.remove('on');
+                            light_btn.classList.add('off');
+                            light_btn.textContent = `On`;
+                        }
+                    }
+                };
+                xml.send();
+            }
+        });
         // Chart initialization
         const tempChart = new Chart(document.getElementById('tempChart'), {
             type: 'line',
@@ -106,7 +157,7 @@
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Moisture (%)',
+                    label: 'Humidity (%)',
                     data: [],
                     borderColor: 'rgba(54, 162, 235, 1)',
                     fill: false
@@ -129,6 +180,11 @@
             options: { responsive: true, scales: { y: { beginAtZero: true } } }
         });
 
+        let auto_dict = {
+            'water': false,
+            'light': false
+        };
+
         // Fetch sensor data every 30 seconds
         function fetchSensorData() {
             fetch('get_sensor_data.php')
@@ -138,21 +194,21 @@
                     document.getElementById('temp').textContent = data.temp;
                     document.getElementById('humidity').textContent = data.humidity;
                     document.getElementById('light').textContent = data.light;
-                    // if (data.temp < 15) {
-                    //     document.querySelector('.tempOverlay').style.display = 'flex';
-                    // } else {
-                    //     document.querySelector('.tempOverlay').style.display = 'none';
-                    // }
-                    // if (data.humidity < 50) {
-                    //     document.querySelector('.humidityOverlay').style.display = 'flex';
-                    // } else {
-                    //     document.querySelector('.humidityOverlay').style.display = 'none';
-                    // }
-                    // if (data.light < 10000) {
-                    //     document.querySelector('.lightOverlay').style.display = 'flex';
-                    // } else {
-                    //     document.querySelector('.lightOverlay').style.display = 'none';
-                    // }
+                    if (data.temp < 15) {
+                        document.querySelector('.tempOverlay').style.display = 'flex';
+                    } else {
+                        document.querySelector('.tempOverlay').style.display = 'none';
+                    }
+                    if (data.humidity < 50) {
+                        document.querySelector('.humidityOverlay').style.display = 'flex';
+                    } else {
+                        document.querySelector('.humidityOverlay').style.display = 'none';
+                    }
+                    if (data.light < 10000) {
+                        document.querySelector('.lightOverlay').style.display = 'flex';
+                    } else {
+                        document.querySelector('.lightOverlay').style.display = 'none';
+                    }
                     // Update charts
                     const time = new Date().toLocaleTimeString();
                     tempChart.data.labels.push(time);
@@ -175,14 +231,16 @@
                     tempChart.update();
                     humidityChart.update();
                     lightChart.update();
+                    
+                    
 
                     // Auto mode checks
-                    if (document.getElementById('autoWater').checked) {
-                        controlDevice('water');
-                    }
-                    if (document.getElementById('autoLight').checked) {
-                        controlDevice('light');
-                    }
+                    // if (document.getElementById('autoWater').checked) {
+                    //     controlDevice('water');
+                    // }
+                    // if (document.getElementById('autoLight').checked) {
+                    //     controlDevice('light');
+                    // }
                 });
         }
 
@@ -190,6 +248,20 @@
         function controlDevice(device) {
             let re_state = '';
             let btn = document.getElementById(`${device}Btn`)
+            // let newState = btn.classList.contains('on') ? 'off' : 'on';
+
+            // // Cập nhật UI ngay lập tức
+            // if (newState === 'off') {
+            //     btn.classList.remove('on');
+            //     btn.classList.add('off');
+            //     btn.textContent = `On`;
+            // } else {
+            //     console.log("VAO ON");
+            //     btn.classList.remove('off');
+            //     btn.classList.add('on');
+            //     btn.textContent = `Off`;
+            // }
+            
             let xml = new XMLHttpRequest();
             xml.open("GET", `get_device_state.php?device=${device}`, true);
             xml.onload = function() {
@@ -201,17 +273,17 @@
                     // if (re_state == 'on') {
                     //     btn.classList.remove('off');
                     //     btn.classList.add('on');
-                    //     btn.textContent = `Tắt`;
+                    //     btn.textContent = `Off`;
                     // } else {
                     //     btn.classList.remove('on');
                     //     btn.classList.add('off');
-                    //     btn.textContent = `Bật`;
+                    //     btn.textContent = `On`;
                         
                     // }
                     let state = re_state == 'on' ? 'off' : 'on';
                     // let state = btn.classList.contains('on') ? 'off' : 'on';
                     console.log("state: ", state);
-                    if (btn.classList.contains('on')) {
+                    if (state == 'on') {
                         btn.classList.remove('on');
                         btn.classList.add('off');
                         btn.textContent = `Off`;
@@ -221,15 +293,18 @@
                         btn.classList.add('on');
                         btn.textContent = `On`;
                     }
-                    fetch('control_device.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({device: device, state: state})
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // alert(data.message);
-                    });
+                    // if (auto_dict[device] == false) {
+                        fetch('control_device.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({device: device, state: state})
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // alert(data.message);
+                        });
+                    // }
+                    
                 }
             };
             xml.send();
@@ -239,6 +314,7 @@
         // Toggle auto mode
         function toggleAuto(device) {
             const state = document.getElementById(`auto${device.charAt(0).toUpperCase() + device.slice(1)}`).checked;
+            auto_dict[device] = state;
             fetch('toggle_auto.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
