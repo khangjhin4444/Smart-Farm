@@ -1,12 +1,66 @@
+.title {
+  color: #073B3A;
+  font-size: 2em;
+  font-weight: bold;
+  padding: 0;
+  margin: 0;
+}
 
-.tempOverlay, .humidityOverlay, .lightOverlay {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: 0; 
-  left: 0; 
-  right: 0; 
-  bottom: 0; 
-  background-color: rgba(255, 255, 255, 0.3);
+.control-section {
+  padding: 10px 20px;
+  text-align: center;
+  background-color: white;
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  height: 200px;
+}
+
+.type-section {
+  height: 50%;
+  background-color: rgb(183, 228, 199);
+  border:none;
+  border-radius: 10px;
+  padding-top: 15px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.form-check-input:checked {
+  background-color: #28ad6f; /* ví dụ: xanh Bootstrap */
+  border-color: #28ad6f;
+}
+
+/* Màu trượt */
+.form-check-input:checked::before {
+  background-color: white;
+}
+
+.form-check-input:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.camera-section {
+  height: 350px;
+  background-color: white;
+  border:none;
+  border-radius: 10px;
+  padding: 10px;
+  width: 100%;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.chartContainer {
+  background-color: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  height: 30%;
+  margin-bottom: 10px;
+}
+
+#tempChart {
+    width: 100% !important;
+    height: 100% !important;
 }
